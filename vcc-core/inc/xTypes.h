@@ -1,38 +1,16 @@
+#ifndef _XTYPES_H_
+#define _XTYPES_H_
+
+/*****************************************************************************/
+
+#include <wchar.h>
+#include <stdint.h>
+
+/*****************************************************************************/
 /*
- Copyright 2015 by Joseph Forgione
- This file is part of VCC (Virtual Color Computer).
- 
- VCC (Virtual Color Computer) is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- 
- VCC (Virtual Color Computer) is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with VCC (Virtual Color Computer).  If not, see <http://www.gnu.org/licenses/>.
+	TODO: add recognition of other platforms
 */
 
-#ifndef _xTypes_h_
-#define _xTypes_h_
-
-/*****************************************************************************/
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <memory.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-
-/*****************************************************************************/
-
-// TODO: remove this
 #if (defined __GNUC__ && defined __APPLE__)
 #	define OSX
 #	define _MAC
@@ -50,64 +28,54 @@
 #	endif
 #endif
 
-#if (defined _WIN32)
-#	if (defined _DEBUG)
-#		define DEBUG
-#	endif
-#endif
-
 /*****************************************************************************/
 /*
 	cross platform defines
 */
 
-#if (defined _LIB)
-#	if (defined _WIN32)
-#		define XAPI __declspec(dllexport)
-#		define XLOCAL __declspec(dllimport)
+#if (defined VCCCORE_EXPORTS)
+#	if (defined WIN32)
+#		define VCCCORE_API __declspec(dllexport)
+//#		define VCCLOCAL __declspec(dllimport)
 #	elif (defined OSX)
-#		define XAPI __attribute__((visibility("public")))
-#		define XLOCAL  __attribute__((visibility("hidden")))
+#		define VCCCORE_API __attribute__((visibility("public")))
+//#		define VCCLOCAL  __attribute__((visibility("hidden")))
 #	else
 #		error "platformed undefined for library build"
 #	endif
 #else
-#	define XAPI
-#	define XLOCAL
+#	if (defined WIN32)
+#		define VCCCORE_API __declspec(dllimport)
+//#		define VCCLOCAL __declspec(dllimport)
+#	elif (defined OSX)
+#		define VCCCORE_API	//__attribute__((visibility("public")))
+//#		define VCCLOCAL		//__attribute__((visibility("hidden")))
+#	else
+#		error "platformed undefined for app build"
+#	endif
 #endif
 
-#if (defined _WIN32)
-#	define XCALL __fastcall
-#	define XSTDCALL
-#	define XCDECL
-#	define XAPI_EXPORT __declspec(dllexport)
+//
+// are these used/useful at all?
+//
+#if (defined _WINDOWS)
+#	define VCCCORE_CALL __fastcall
+#	define VCCCORE_STDCALL __stdcall
+#	define VCCCORE_CDECL __cdecl
 
 #	pragma warning (disable:4068)
 
 #else
-#	define XCALL
-#	define XSTDCALL
-#	define XCDECL
-#	define XAPI_EXPORT 
+#	define VCCCORE_CALL
+#	define VCCCORE_STDCALL
+#	define VCCCORE_CDECL
+//#	define VCCCORE_EXPORT 
 #endif
 
-#define XINLINE
-#define XCALLBACK
-
-#if (defined _WIN32) && !(defined PATH_MAX)
-#define PATH_MAX _MAX_PATH
-#endif
-
+#define VCCCORE_INLINE
+#define VCCCORE_CALLBACK
 
 /*****************************************************************************/
-
-#ifndef TRUE
-#    define TRUE (1)
-#endif
-
-#ifndef FALSE
-#    define FALSE (0)
-#endif
 
 #ifndef NULL
 #	ifdef __cplusplus
@@ -117,68 +85,95 @@
 #	endif
 #endif
 
-#if !(defined MAX)
-#   define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#endif
-#if !(defined MIN)
-#   define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#endif
-
-#if !(defined max)
-#define max(a,b) \
-    ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-       _a > _b ? _a : _b; })
-#endif
-
-#if !(defined min)
-#define min(a,b) \
-    ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-       _a < _b ? _a : _b; })
-#endif
-
 /*****************************************************************************/
 /*
-	handy types
+	cross platform types
  */
+typedef long				bool_t;
+typedef long				int_t;
+typedef unsigned long		uint_t;
+typedef unsigned long		result_t;
 
+typedef signed char			s8_t;
+typedef signed short		s16_t;
+typedef signed int			s32_t;
+typedef signed long long	s64_t;
+
+typedef unsigned char		u8_t;
+typedef unsigned short		u16_t;
+typedef unsigned int		u32_t;
+typedef unsigned long long	u64_t;
+
+typedef float				f32_t;
+typedef double				f64_t;
+
+typedef unsigned char		byte_t;
+typedef unsigned char *		pbyte_t;
+typedef double				real_t;
+
+typedef void *				pvoid_t;
 typedef void *				handle_t;
+
+typedef char				char_t;
+
+typedef char				nchar_t;
+//typedef unsigned short	whar_t;	// defined in wchar.h
+
+typedef f32_t				decimal_t;
+
+/*
+	platform specific object pointers
+ */
+typedef void *				ppathname_t;
+
+/*
+	string and character wrappers for Unicode build
+*/
+#define XCHAR(t)	t
+#define XTEXT(t)	t
+
+#define XNCHAR(t)	t
+#define XNTEXT(t)	t
+
+#define XWCHAR(t)	L ## t
+#define XWTEXT(t)	L ## t
+
+/* 
+	number of characters in string less terminator 
+ (does not work with dynamically alloc'd strings) 
+*/
+#define XTEXT_NUM_CHARS(s)		( (sizeof(s) - 1) / sizeof(char_t) )
+#define XTEXT_NUM_BYTES(s)		( sizeof(s) - sizeof(char_t) )
+
+#ifndef TRUE
+#	define TRUE (1)
+#endif
+
+#ifndef FALSE
+#	define FALSE (0)
+#endif
 
 /*****************************************/
 /*
 	result_t error codes
 */
-
-typedef enum result_t
-{
-    XERROR_NONE                 = 0,
-    XERROR_GENERIC              = (0-1),
-    XERROR_INVALID_PARAMETER    = (0-2),
-    XERROR_BUFFER_OVERFLOW      = (0-3),
-    XERROR_OUT_OF_MEMORY        = (0-4),
-    XERROR_NOT_FOUND            = (0-5),
-    XERROR_EOF                  = (0-6),
-    XERROR_READ                 = (0-7),
-    XERROR_WRITE                = (0-8)
-} result_t;
-
-/*****************************************/
-
-typedef enum signal_e
-{
-    Low = 0,
-    High
-}  signal_e;
+#define XERROR_NONE					(0)
+#define XERROR_GENERIC				(0-1)
+#define XERROR_INVALID_PARAMETER	(0-2)
+#define XERROR_BUFFER_OVERFLOW		(0-3)
+#define XERROR_OUT_OF_MEMORY		(0-4)
+#define XERROR_NOT_FOUND			(0-5)
+#define XERROR_EOF					(0-6)
+#define XERROR_READ					(0-7)
+#define XERROR_WRITE				(0-8)
 
 /*****************************************/
 /*
- TODO: remove use of this type
  Four character constants
  */
-typedef uint32_t					fcc_t;
-#if (defined _WIN32)
-typedef uint32_t					id_t;
+typedef u32_t					fcc_t;
+#if (defined _WINDOWS)
+typedef u32_t					id_t;
 #endif
 
 /*
@@ -195,20 +190,41 @@ typedef uint32_t					id_t;
 
 #if (defined X_BIG_ENDIAN)
 #define XFOURCC(c, c1, c2, c3)				\
-(fcc_t)	(       (uint32_t)(uint8_t)(c3)			\
-			| ( (uint32_t)(uint8_t)(c2) << 8 )	\
-			| ( (uint32_t)(uint8_t)(c1) << 16 )	\
-			| ( (uint32_t)(uint8_t)(c)  << 24 )	\
+(fcc_t)	(       (u32_t)(u8_t)(c3)			\
+			| ( (u32_t)(u8_t)(c2) << 8 )	\
+			| ( (u32_t)(u8_t)(c1) << 16 )	\
+			| ( (u32_t)(u8_t)(c)  << 24 )	\
 )
 #else
 #define XFOURCC(c, c1, c2, c3)				\
-(fcc_t)	(       (uint32_t)(uint8_t)(c)			\
-			| ( (uint32_t)(uint8_t)(c1) << 8 )	\
-			| ( (uint32_t)(uint8_t)(c2) << 16 )	\
-			| ( (uint32_t)(uint8_t)(c3) << 24 )	\
+(fcc_t)	(       (u32_t)(u8_t)(c)			\
+			| ( (u32_t)(u8_t)(c1) << 8 )	\
+			| ( (u32_t)(u8_t)(c2) << 16 )	\
+			| ( (u32_t)(u8_t)(c3) << 24 )	\
 )
 #endif
 
+#if (defined WIN32)
+#	define Stringize( L )			#L
+#	define MakeString( M, L )		M(L)
+#	define $Line					\
+		MakeString( Stringize, __LINE__ )
+#	define REMINDER				\
+		__FILE__ "(" $Line ") : Reminder: "
+#	define TODO				\
+		__FILE__ "(" $Line ") : TODO: "
+
+// To use include the following line somewhere in your code
+// #pragma message(REMINDER "Fix this problem!")
+// #pragma message(TODO "Fix this problem!")
+#endif
+
+//
+// Other common definitions
+//
+#define MAX_LOADSTRING	100
+
 /*****************************************************************************/
 
-#endif
+#endif // _XTYPES_H_
+
